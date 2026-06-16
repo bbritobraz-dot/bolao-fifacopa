@@ -1,0 +1,1140 @@
+/* ==========================================================================
+   BOLÃO COPA DO MUNDO 2026 - CSS STYLESHEET (PREMIUM STADIUM THEME)
+   ========================================================================== */
+
+:root {
+  --bg-primary: #040d0a;
+  --bg-secondary: #091a14;
+  --bg-tertiary: #0e2920;
+  
+  --glass-bg: rgba(9, 26, 20, 0.65);
+  --glass-border: rgba(57, 255, 20, 0.12);
+  --glass-border-focus: rgba(57, 255, 20, 0.35);
+  --glass-highlight: rgba(255, 255, 255, 0.03);
+
+  --color-text: #f3f4f6;
+  --color-text-secondary: #9ca3af;
+  --color-primary: #10b981; /* Emerald */
+  --color-accent: #39ff14;  /* Neon Green */
+  --color-gold: #ffb800;    /* Trophy Gold */
+  --color-danger: #ef4444;  /* Red Alert */
+  --color-success: #10b981; /* Success Green */
+
+  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  
+  --border-radius-sm: 8px;
+  --border-radius-md: 14px;
+  --border-radius-lg: 24px;
+  
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   RESET & BASE STYLES
+   ========================================================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(255, 184, 0, 0.06) 0%, transparent 40%);
+  background-attachment: fixed;
+  color: var(--color-text);
+  font-family: var(--font-family);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-sm);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* ==========================================================================
+   HELPERS & REUSABLE CLASSES
+   ========================================================================== */
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.glass:hover {
+  border-color: rgba(57, 255, 20, 0.22);
+}
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-success { color: var(--color-success); }
+.text-danger { color: var(--color-danger); }
+.text-secondary { color: var(--color-text-secondary); font-size: 0.875rem; }
+.text-gold { color: var(--color-gold); font-weight: 600; }
+
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.mt-5 { margin-top: 3rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.ml-2 { margin-left: 0.5rem; }
+
+.hidden { display: none !important; }
+
+/* Buttons */
+button {
+  font-family: var(--font-family);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: #020806;
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 4px 14px 0 rgba(57, 255, 20, 0.25);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px 0 rgba(57, 255, 20, 0.4);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--color-text);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-accent);
+}
+
+.btn-link {
+  background: transparent;
+  color: var(--color-accent);
+  text-decoration: underline;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-link:hover {
+  color: var(--color-text);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+}
+.btn-danger:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.btn-icon {
+  background: transparent;
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+/* Input Fields */
+input[type="text"], input[type="password"], select {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text);
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-sm);
+  outline: none;
+  font-family: var(--font-family);
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+}
+
+input[type="text"]:focus, input[type="password"]:focus, select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.25);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.glass-select {
+  width: 100%;
+  max-width: 300px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2339ff14' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.2em;
+  padding-right: 2.5rem;
+}
+
+/* ==========================================================================
+   LOADING & ONBOARDING LAYOUTS
+   ========================================================================== */
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-primary);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(57, 255, 20, 0.1);
+  border-left-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 5, 0.85);
+  backdrop-filter: blur(12px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 480px;
+  padding: 2.5rem;
+  border-color: rgba(57, 255, 20, 0.25);
+  box-shadow: 0 0 40px rgba(57, 255, 20, 0.15);
+}
+
+.trophy-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 20px rgba(255, 184, 0, 0.4);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.modal-content h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(to right, white, var(--color-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.modal-content p {
+  margin-bottom: 1.5rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.input-group input {
+  width: 100%;
+  text-align: center;
+}
+
+.error-msg {
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.sync-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+}
+
+.code-box {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px dashed var(--color-accent);
+  padding: 1rem;
+  font-family: monospace;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  border-radius: var(--border-radius-sm);
+  color: var(--color-accent);
+  user-select: all;
+  word-break: break-all;
+}
+
+/* ==========================================================================
+   APP STRUCTURE (CONTAINER & HEADER)
+   ========================================================================== */
+
+.app-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.app-header {
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.logo-area h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.badge-live {
+  background: linear-gradient(135deg, var(--color-gold), #e0a300);
+  color: #040d0a;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.15rem 0.6rem;
+  border-radius: 50px;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  margin-bottom: 0.25rem;
+}
+
+/* Profile corner */
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-sm);
+  border-color: rgba(57, 255, 20, 0.2);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.profile-points {
+  color: var(--color-accent);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+/* Nav tabs */
+.nav-tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.nav-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tab-btn {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: var(--border-radius-sm);
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-btn:hover {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tab-btn.active {
+  color: #020806;
+  background: var(--color-accent);
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(57, 255, 20, 0.3);
+}
+
+/* ==========================================================================
+   TAB CONTENTS & SECTIONS
+   ========================================================================== */
+
+.tab-content {
+  display: none;
+  animation: fadeIn var(--transition-normal);
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.section-header p {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+/* ==========================================================================
+   RANKING TAB
+   ========================================================================== */
+
+.ranking-wrapper {
+  overflow-x: auto;
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 500px;
+}
+
+.ranking-table th, .ranking-table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ranking-table th {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+.ranking-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+.ranking-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.ranking-table tbody tr.ranking-self {
+  background-color: rgba(57, 255, 20, 0.04);
+  border-left: 3px solid var(--color-accent);
+}
+
+.ranking-table tbody tr.ranking-self td {
+  font-weight: 600;
+}
+
+.col-pos { width: 60px; text-align: center; }
+.col-exact, .col-diff, .col-win { width: 100px; text-align: center; }
+.col-pts { width: 100px; text-align: right; }
+
+.rank-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.rank-1 { background: var(--color-gold); color: #020806; box-shadow: 0 0 10px rgba(255, 184, 0, 0.4); }
+.rank-2 { background: #cbd5e1; color: #020806; }
+.rank-3 { background: #b45309; color: white; }
+
+.cell-name-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.points-total {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-accent);
+}
+
+.badge-self-indicator {
+  background: var(--bg-tertiary);
+  color: var(--color-accent);
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--glass-border);
+}
+
+/* ==========================================================================
+   CALENDAR FILTERS & GAMES
+   ========================================================================== */
+
+.calendar-filters {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  overflow-x: auto;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 1.5rem;
+}
+
+.filter-btn {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: var(--border-radius-sm);
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.filter-btn.active {
+  background: var(--bg-tertiary);
+  color: var(--color-accent);
+  border: 1px solid var(--glass-border);
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+/* Game Card */
+.game-card {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.game-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.5rem;
+}
+
+.game-group {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.game-time {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.game-teams {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.team-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+
+.flag {
+  width: 28px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  background: #111;
+}
+
+.score-display {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text);
+  width: 30px;
+  text-align: center;
+}
+
+.score-display.actual-score {
+  color: var(--color-gold);
+}
+
+/* Prediction Inputs */
+.guess-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+  background: rgba(0,0,0,0.3);
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.guess-box-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.guess-inputs-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.guess-score-input {
+  width: 36px;
+  height: 36px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding: 0 !important;
+  border-radius: 6px;
+}
+
+.guess-divider {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.guess-saved-indicator {
+  font-size: 0.75rem;
+  color: var(--color-success);
+  font-weight: 600;
+  text-align: right;
+  height: 15px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.guess-saved-indicator.show {
+  opacity: 1;
+}
+
+/* Points Badge on Card */
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.05);
+  padding-top: 0.75rem;
+}
+
+.badge-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.badge-status.finished { background: rgba(16, 185, 129, 0.15); color: var(--color-success); }
+.badge-status.ongoing { background: rgba(239, 68, 68, 0.15); color: var(--color-danger); }
+.badge-status.scheduled { background: rgba(255, 255, 255, 0.05); color: var(--color-text-secondary); }
+
+.badge-points {
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+}
+.points-10 { background: rgba(255, 184, 0, 0.15); color: var(--color-gold); border: 1px solid var(--color-gold); }
+.points-7 { background: rgba(57, 255, 20, 0.15); color: var(--color-accent); border: 1px solid var(--color-accent); }
+.points-5 { background: rgba(16, 185, 129, 0.15); color: var(--color-primary); border: 1px solid var(--color-primary); }
+.points-0 { background: rgba(239, 68, 68, 0.1); color: var(--color-danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+.locked-indicator {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ==========================================================================
+   BRACKET TAB (CHAVEAMENTO)
+   ========================================================================== */
+
+.bracket-outer {
+  overflow-x: auto;
+  padding: 1.5rem 0;
+  border-radius: var(--border-radius-md);
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.bracket-container {
+  display: flex;
+  gap: 3rem;
+  padding: 1rem;
+  width: max-content;
+  min-height: 800px;
+}
+
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 260px;
+}
+
+.bracket-round h3 {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--color-accent);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--bg-tertiary);
+  padding: 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--glass-border);
+}
+
+.bracket-round .match-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 100%;
+  gap: 1.5rem;
+}
+
+/* Bracket Match Card */
+.bracket-match {
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.bracket-match::after {
+  content: '';
+  position: absolute;
+  right: -1.5rem;
+  top: 50%;
+  width: 1.5rem;
+  height: 2px;
+  background: var(--glass-border);
+  display: none; /* Add connector lines programmatically or with CSS later */
+}
+
+.bracket-match-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 0.25rem;
+}
+
+.bracket-team {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+}
+
+.bracket-team-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.bracket-team-flag {
+  width: 20px;
+  height: 14px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.bracket-team-score {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--color-gold);
+}
+
+.bracket-team.winner {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   GROUPS TAB (TABELA DE GRUPOS)
+   ========================================================================== */
+
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.group-table-card {
+  padding: 1.25rem;
+}
+
+.group-table-card h3 {
+  font-size: 1.1rem;
+  color: var(--color-accent);
+  margin-bottom: 0.75rem;
+  border-bottom: 2px solid var(--bg-tertiary);
+  padding-bottom: 0.25rem;
+}
+
+.group-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.group-table th, .group-table td {
+  padding: 0.4rem 0.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.group-table th {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.group-table td.team-name {
+  text-align: left;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.group-table tbody tr:nth-child(-n+2) {
+  background: rgba(57, 255, 20, 0.02); /* Qualifying spots highlights */
+}
+
+/* ==========================================================================
+   ADMIN TAB
+   ========================================================================== */
+
+.admin-auth-wrapper {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.admin-dashboard {
+  animation: fadeIn var(--transition-fast);
+}
+
+.admin-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid var(--glass-border);
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-sm);
+}
+
+.admin-panel-card {
+  padding: 1.5rem;
+}
+
+.admin-filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Admin Match Row */
+.admin-match-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0,0,0,0.2);
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-match-teams {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 600;
+  min-width: 240px;
+}
+
+.admin-team {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-match-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-match-inputs input {
+  width: 44px;
+  height: 38px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0;
+}
+
+.border-danger {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.border-danger:hover {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+/* ==========================================================================
+   RULES & DOCUMENTATION
+   ========================================================================== */
+
+.rules-container {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rule-card {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.rule-card:last-child {
+  border-bottom: none;
+}
+
+.rule-pts {
+  background: var(--bg-tertiary);
+  color: var(--color-accent);
+  border: 1px solid var(--glass-border);
+  font-size: 1.5rem;
+  font-weight: 800;
+  min-width: 60px;
+  height: 60px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.1);
+}
+
+.rule-desc h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--color-text);
+}
+
+.rule-desc p {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.rules-notes {
+  background: rgba(255, 184, 0, 0.03);
+  border-left: 3px solid var(--color-gold);
+  padding: 1rem;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.9rem;
+}
+
+.rules-notes p {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-gold);
+}
+
+.rules-notes ul {
+  padding-left: 1.25rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (BREAKPOINTS)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .app-container {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .app-header {
+    padding: 1rem;
+  }
+
+  .header-main {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .logo-area {
+    text-align: center;
+  }
+
+  .profile-card {
+    justify-content: space-between;
+  }
+
+  .nav-tabs {
+    justify-content: flex-start;
+  }
+
+  .games-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bracket-container {
+    gap: 1.5rem;
+  }
+
+  .bracket-round {
+    width: 220px;
+  }
+
+  .admin-match-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-match-teams {
+    justify-content: center;
+  }
+
+  .admin-match-inputs {
+    justify-content: center;
+  }
+}

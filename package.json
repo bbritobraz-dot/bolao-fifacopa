@@ -1,0 +1,16 @@
+{
+  "name": "bolao-copa-2026",
+  "version": "1.0.0",
+  "description": "App de Bolão para a Copa do Mundo 2026",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx -y http-server . -p 3000 -o"
+  },
+  "keywords": [
+    "bolao",
+    "copa-2026",
+    "supabase"
+  ],
+  "author": "",
+  "license": "ISC"
+}

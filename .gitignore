@@ -1,0 +1,15 @@
+# OS files
+desktop.ini
+.DS_Store
+Thumbs.db
+*.lnk
+
+# Local server log files
+*.log
+.system_generated/
+task.md
+walkthrough.md
+implementation_plan.md
+
+# Local test scripts (optional to exclude, but keeping them locally is safer)
+browser_check.py

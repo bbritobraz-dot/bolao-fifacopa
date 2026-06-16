@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      const errStr = "ERRO: " + message + "\nArquivo: " + source + "\nLinha: " + lineno + ":" + colno;
+      console.error(errStr);
+      alert(errStr);
+      const loader = document.getElementById('loading-screen');
+      if (loader) {
+        const p = loader.querySelector('p');
+        if (p) p.innerHTML = `<span style="color:#ef4444;font-weight:bold;">Erro de Carregamento!</span><br><br><small style="color:#9ca3af;word-break:break-all;">${errStr.replace(/\n/g, '<br>')}</small>`;
+      }
+      return false;
+    };
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Participe do Bolão da Copa do Mundo 2026 com seus amigos. Dê seus palpites nos jogos, acompanhe a classificação dos grupos e o chaveamento em tempo real!">
+  <title>Bolão Copa do Mundo 2026 🏆</title>
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=5">
+  <!-- Supabase JS Local -->
+  <script src="supabase.js"></script>
+</head>
+<body>
+
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Carregando o Bolão...</p>
+  </div>
+
+  <!-- ONBOARDING MODAL -->
+  <div id="onboarding-modal" class="modal-overlay hidden">
+    <div class="modal-content glass">
+      <div class="trophy-icon">🏆</div>
+      <h2 id="onboarding-title">Entrar no Bolão</h2>
+      <p id="onboarding-desc">Acesse sua conta ou crie um novo cadastro para palpitar nos jogos da Copa.</p>
+      
+      <!-- ONBOARDING TABS -->
+      <div class="onboarding-tabs mb-3" style="display: flex; background: rgba(0,0,0,0.3); padding: 0.25rem; border-radius: 8px; border: 1px solid rgba(57, 255, 20, 0.15); margin-bottom: 1.25rem;">
+        <button id="tab-login-btn" class="onboarding-tab-btn active" style="flex: 1; background: rgba(14, 41, 32, 0.8); color: #39ff14; padding: 0.5rem; font-size: 0.9rem; font-weight: 600; border-radius: 6px; border: 1px solid rgba(57, 255, 20, 0.2);">Entrar</button>
+        <button id="tab-register-btn" class="onboarding-tab-btn" style="flex: 1; background: transparent; color: #9ca3af; padding: 0.5rem; font-size: 0.9rem; font-weight: 600; border-radius: 6px; border: none;">Primeiro Acesso</button>
+      </div>
+
+      <div class="input-group">
+        <input type="text" id="username-input" placeholder="Nome ou Apelido" maxlength="25">
+        <input type="password" id="password-input" placeholder="Sua Senha (mín. 4 caracteres)" maxlength="20">
+        <button id="join-btn" class="btn-primary">Entrar no Bolão</button>
+      </div>
+      <p id="onboarding-error" class="error-msg hidden"></p>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div class="app-container">
+    
+    <!-- HEADER -->
+    <header class="app-header glass">
+      <div class="header-main">
+        <div class="logo-area">
+          <span class="badge-live">COPA 2026</span>
+          <h1>Bolão da Galera ⚽</h1>
+        </div>
+        
+        <!-- PROFILE CORNER -->
+        <div class="profile-card glass hidden" id="profile-card">
+          <div class="profile-info">
+            <span class="profile-name" id="user-display-name">Carregando...</span>
+            <span class="profile-points" id="user-display-points">0 pts</span>
+          </div>
+          <button id="logout-btn" class="btn-icon" title="Sair da Conta">🚪</button>
+        </div>
+      </div>
+
+      <!-- NAVIGATION TABS -->
+      <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="tab-ranking">🏅 Ranking</button>
+        <button class="tab-btn" data-tab="tab-games">📅 Jogos & Palpites</button>
+        <button class="tab-btn" data-tab="tab-bracket">🌳 Chaveamento</button>
+        <button class="tab-btn" data-tab="tab-groups">📊 Grupos</button>
+        <button class="tab-btn" data-tab="tab-rules">📜 Regras</button>
+        <button class="tab-btn" data-tab="tab-admin">⚙️ Admin</button>
+      </nav>
+    </header>
+
+    <!-- TAB CONTENTS -->
+    <main class="app-content">
+
+      <!-- RANKING TAB -->
+      <section id="tab-ranking" class="tab-content active">
+        <div class="section-header">
+          <h2>Classificação Geral</h2>
+          <p>Veja quem está liderando o bolão dos amigos!</p>
+        </div>
+        <div class="ranking-wrapper glass">
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th class="col-pos">Pos</th>
+                <th>Nome</th>
+                <th class="col-exact">Exatos (10p)</th>
+                <th class="col-diff">Saldo (7p)</th>
+                <th class="col-win">Vencedor (5p)</th>
+                <th class="col-pts">Pontos</th>
+              </tr>
+            </thead>
+            <tbody id="ranking-list">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- GAMES & GUESSES TAB -->
+      <section id="tab-games" class="tab-content">
+        <div class="section-header">
+          <h2>Jogos da Copa do Mundo</h2>
+          <p>Faça seus palpites! As apostas fecham no horário de início de cada jogo.</p>
+        </div>
+        
+        <!-- CALENDAR FILTERS -->
+        <div class="calendar-filters glass">
+          <button class="filter-btn active" data-filter="today">Jogos de Hoje 📅</button>
+          <button class="filter-btn" data-filter="upcoming">Próximos Jogos ⏰</button>
+          <button class="filter-btn" data-filter="finished">Resultados ⚽</button>
+          <button class="filter-btn" data-filter="all">Todos os Jogos</button>
+        </div>
+
+        <!-- SEARCH / GROUP SELECT -->
+        <div class="search-bar-container mt-3">
+          <select id="group-filter-select" class="glass-select">
+            <option value="all">Filtrar por Grupo / Fase</option>
+            <option value="Grupo A">Grupo A</option>
+            <option value="Grupo B">Grupo B</option>
+            <option value="Grupo C">Grupo C</option>
+            <option value="Grupo D">Grupo D</option>
+            <option value="Grupo E">Grupo E</option>
+            <option value="Grupo F">Grupo F</option>
+            <option value="Grupo G">Grupo G</option>
+            <option value="Grupo H">Grupo H</option>
+            <option value="Grupo I">Grupo I</option>
+            <option value="Grupo J">Grupo J</option>
+            <option value="Grupo K">Grupo K</option>
+            <option value="Grupo L">Grupo L</option>
+            <option value="playoff">Mata-mata</option>
+          </select>
+        </div>
+
+        <div id="games-list" class="games-grid mt-4">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- BRACKET TAB -->
+      <section id="tab-bracket" class="tab-content">
+        <div class="section-header">
+          <h2>Chaveamento do Mata-mata</h2>
+          <p>Acompanhe o caminho rumo ao título a partir da Rodada de 32!</p>
+        </div>
+        
+        <div class="bracket-outer">
+          <div class="bracket-container" id="bracket-container">
+            <!-- Round of 32 (16 matches) -->
+            <div class="bracket-round" id="round-r32">
+              <h3>Rodada de 32</h3>
+              <div class="match-list" id="nodes-r32"></div>
+            </div>
+            
+            <!-- Round of 16 (8 matches) -->
+            <div class="bracket-round" id="round-r16">
+              <h3>Oitavas de Final</h3>
+              <div class="match-list" id="nodes-r16"></div>
+            </div>
+            
+            <!-- Quarterfinals (4 matches) -->
+            <div class="bracket-round" id="round-qf">
+              <h3>Quartas de Final</h3>
+              <div class="match-list" id="nodes-qf"></div>
+            </div>
+            
+            <!-- Semifinals (2 matches) -->
+            <div class="bracket-round" id="round-sf">
+              <h3>Semifinais</h3>
+              <div class="match-list" id="nodes-sf"></div>
+            </div>
+            
+            <!-- Final & 3rd Place -->
+            <div class="bracket-round" id="round-finals">
+              <h3>Finais</h3>
+              <div class="match-list" id="nodes-finals"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GROUPS STANDINGS TAB -->
+      <section id="tab-groups" class="tab-content">
+        <div class="section-header">
+          <h2>Tabela dos Grupos</h2>
+          <p>Classificação atualizada dinamicamente com base nos resultados reais da Copa.</p>
+        </div>
+        
+        <div class="groups-grid" id="groups-container">
+          <!-- Dynamically populated: Groups A to L -->
+        </div>
+      </section>
+
+      <!-- RULES TAB -->
+      <section id="tab-rules" class="tab-content">
+        <div class="section-header">
+          <h2>Regras de Pontuação</h2>
+          <p>Entenda como funciona o cálculo dos pontos no nosso bolão.</p>
+        </div>
+        
+        <div class="rules-container glass">
+          <div class="rule-card">
+            <div class="rule-pts">+10</div>
+            <div class="rule-desc">
+              <h3>Placar Exato</h3>
+              <p>Você acertou exatamente o placar do jogo. Exemplo: Palpite: 2x1 | Jogo: 2x1.</p>
+            </div>
+          </div>
+
+          <div class="rule-card">
+            <div class="rule-pts">+7</div>
+            <div class="rule-desc">
+              <h3>Vencedor e Saldo de Gols</h3>
+              <p>Você acertou o vencedor e a diferença de gols, mas errou o número exato de gols. Exemplo: Palpite: 3x1 | Jogo: 2x0.</p>
+            </div>
+          </div>
+
+          <div class="rule-card">
+            <div class="rule-pts">+5</div>
+            <div class="rule-desc">
+              <h3>Vencedor ou Empate Geral</h3>
+              <p>Você acertou quem ganharia o jogo (ou que daria empate), mas errou o placar e o saldo. Exemplo: Palpite: 1x0 | Jogo: 2x1.</p>
+            </div>
+          </div>
+
+          <div class="rule-card">
+            <div class="rule-pts">0</div>
+            <div class="rule-desc">
+              <h3>Errou o resultado</h3>
+              <p>Você apostou em um resultado diferente do que aconteceu. Exemplo: Palpite: 1x1 | Jogo: 2x0.</p>
+            </div>
+          </div>
+          
+          <div class="rules-notes">
+            <p><strong>Observações importantes:</strong></p>
+            <ul>
+              <li>Os palpites fecham no início de cada partida. Não é possível alterar palpites após o início do jogo.</li>
+              <li>A classificação dos grupos atualiza automaticamente de acordo com os resultados oficiais lançados pelo Admin.</li>
+              <li>Para o mata-mata, os palpites valem para o tempo normal de jogo (incluindo prorrogação, excluindo disputa de pênaltis).</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADMIN TAB -->
+      <section id="tab-admin" class="tab-content">
+        <div class="section-header">
+          <h2>Painel Administrativo</h2>
+          <p>Insira a senha do administrador para atualizar os placares oficiais dos jogos.</p>
+        </div>
+        
+        <div class="admin-auth-wrapper glass" id="admin-auth-section">
+          <h3>Autenticação do Admin</h3>
+          <div class="input-group mt-2">
+            <input type="password" id="admin-passcode-input" placeholder="Digite a senha do admin">
+            <button id="admin-login-btn" class="btn-primary">Entrar no Modo Admin</button>
+          </div>
+          <p id="admin-auth-error" class="error-msg hidden mt-2"></p>
+        </div>
+
+        <div class="admin-dashboard hidden" id="admin-dashboard-section">
+          <div class="admin-header-row mb-3">
+            <span class="text-success">✔ Autenticado como Administrador</span>
+            <button id="admin-logout-btn" class="btn-secondary btn-sm">Sair do Modo Admin</button>
+          </div>
+          
+          <div class="admin-panels">
+            <!-- UPDATE MATCHES -->
+            <div class="admin-panel-card glass">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+                <div>
+                  <h3 style="margin-bottom:0;">Atualizar Placares Oficiais</h3>
+                  <p class="text-secondary">Digite o placar final ou atualize todos os jogos de uma vez.</p>
+                </div>
+                <button id="admin-sync-api-btn" class="btn-primary btn-sm">🔄 Sincronizar via API Pública</button>
+              </div>
+              
+              <div class="admin-filters mt-3 mb-3">
+                <select id="admin-stage-select" class="glass-select">
+                  <option value="all">Todas as Fases</option>
+                  <option value="group">Fase de Grupos</option>
+                  <option value="playoff">Mata-mata</option>
+                </select>
+                <input type="text" id="admin-search-input" class="glass-input" placeholder="Buscar seleção...">
+              </div>
+
+              <div id="admin-matches-list" class="admin-matches-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- DANGER ZONE -->
+            <div class="admin-panel-card glass border-danger mt-4">
+              <h3 class="text-danger">Zona de Perigo</h3>
+              <p class="text-secondary">Essas ações reiniciam ou limpam dados do banco de dados.</p>
+              <div class="mt-3">
+                <button id="reset-all-matches-btn" class="btn-danger">Reiniciar Todos os Placares para Vazio</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer text-center mt-5 mb-4">
+      <p class="text-secondary">Bolão Copa 2026 • Desenvolvido para amigos • Tempo Real ⚽</p>
+    </footer>
+  </div>
+
+  <!-- KEY DISPLAY MODAL -->
+  <div id="code-modal" class="modal-overlay hidden">
+    <div class="modal-content glass text-center">
+      <h2>Seu Código de Sincronização 🔑</h2>
+      <p class="text-secondary">Copie este código para acessar seus palpites em outro navegador ou no celular:</p>
+      <div class="code-box" id="sync-code-box"></div>
+      <button id="copy-code-btn" class="btn-primary mt-3">Copiar Código</button>
+      <button id="close-code-modal-btn" class="btn-secondary mt-2">Fechar</button>
+    </div>
+  </div>
+
+  <!-- JS APP SOURCE -->
+  <script src="app.js?v=5"></script>
+</body>
+</html>
