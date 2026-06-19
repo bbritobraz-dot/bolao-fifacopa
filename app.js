@@ -333,6 +333,11 @@ function setupEventListeners() {
 
   // Danger Zone: Reset placares
   document.getElementById('reset-all-matches-btn').addEventListener('click', handleDangerReset);
+
+  // Close Audit Modal
+  document.getElementById('close-audit-modal-btn').addEventListener('click', () => {
+    document.getElementById('audit-modal').classList.add('hidden');
+  });
 }
 
 // 5. ONBOARDING & AUTH ACTIONS
@@ -818,6 +823,13 @@ function renderGames() {
     const homeFlagUrl = `https://flagcdn.com/${match.home_flag}.svg`;
     const awayFlagUrl = `https://flagcdn.com/${match.away_flag}.svg`;
 
+    const guessBoxHeader = isLocked ? 
+      `<div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.4rem;">
+         <span class="guess-box-title">Seu palpite</span>
+         <button class="btn-audit" data-match-id="${match.id}" style="background: rgba(57, 255, 20, 0.15); border: 1px solid rgba(57, 255, 20, 0.3); color: var(--color-accent); font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: var(--border-radius-sm); cursor: pointer; font-weight: 600; font-family: Outfit, sans-serif; transition: all var(--transition-fast);">Auditar 👁</button>
+       </div>` :
+      `<span class="guess-box-title">Seu palpite</span>`;
+
     card.innerHTML = `
       <div class="game-meta">
         <span class="game-group">${match.group_name}</span>
@@ -846,7 +858,7 @@ function renderGames() {
       
       <!-- GUESS BOX -->
       <div class="guess-box">
-        <span class="guess-box-title">${isLocked ? 'Seu palpite' : 'Seu palpite'}</span>
+        ${guessBoxHeader}
         <div class="guess-inputs-row">
           <input type="text" class="guess-score-input" id="g-home-${match.id}" 
             value="${hasGuess ? guess.home_score : ''}" 
@@ -870,6 +882,9 @@ function renderGames() {
 
   // Attach auto-save inputs logic
   setupGuessInputHandlers();
+  
+  // Attach audit click handlers
+  setupAuditButtonsHandlers();
 }
 
 // Attach auto-save to game prediction inputs (on blur / leave focus)
@@ -1680,6 +1695,104 @@ async function handleRejectRequest(reqName) {
       alert("Erro ao rejeitar solicitação.");
     }
     showLoading(false);
+  }
+}
+
+// ==========================================================================
+// AUDITING / MATCH GUESSES PUBLIC DISCLOSURE SYSTEM
+// ==========================================================================
+
+function setupAuditButtonsHandlers() {
+  const auditBtns = document.querySelectorAll('.btn-audit');
+  auditBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const matchId = parseInt(btn.getAttribute('data-match-id'));
+      openAuditModal(matchId);
+    });
+  });
+}
+
+async function openAuditModal(matchId) {
+  // Show Modal
+  document.getElementById('audit-modal').classList.remove('hidden');
+
+  // Find match details
+  const match = matches.find(m => m.id === matchId);
+  if (!match) return;
+
+  document.getElementById('audit-match-header').innerHTML = `
+    ${match.home_team} x ${match.away_team}<br>
+    <span style="font-size:0.75rem; color:var(--color-text-secondary); font-weight:normal;">
+      Início: ${formatDateBR(new Date(match.match_date))}
+    </span>
+  `;
+
+  const listContainer = document.getElementById('audit-guesses-list');
+  listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1.5rem 0;">Buscando palpites... ⏳</p>';
+
+  try {
+    // Fetch all guesses for this match with participant names joined
+    const { data: guesses, error } = await supabase
+      .from('guesses')
+      .select('home_score, away_score, points, participants(name)')
+      .eq('match_id', matchId);
+
+    if (error) throw error;
+
+    // Sort: If match is finished, sort by points DESC, then name ASC.
+    // If ongoing/not finished, sort by name ASC.
+    guesses.sort((a, b) => {
+      if (match.status === 'finished') {
+        const pointsA = a.points || 0;
+        const pointsB = b.points || 0;
+        if (pointsB !== pointsA) return pointsB - pointsA;
+      }
+      const nameA = a.participants?.name || '';
+      const nameB = b.participants?.name || '';
+      return nameA.localeCompare(nameB);
+    });
+
+    if (guesses.length === 0) {
+      listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1.5rem 0;">Nenhum palpite registrado para este jogo.</p>';
+      return;
+    }
+
+    listContainer.innerHTML = '';
+    guesses.forEach(g => {
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.justifyContent = 'space-between';
+      row.style.alignItems = 'center';
+      row.style.padding = '0.6rem 0.5rem';
+      row.style.borderBottom = '1px solid rgba(255,255,255,0.06)';
+
+      const hasPoints = match.status === 'finished' && g.points !== null && g.points !== undefined;
+      let pointsBadge = '';
+      if (hasPoints) {
+        let ptsClass = 'color: var(--color-text-secondary);';
+        if (g.points === 10) ptsClass = 'color: var(--color-accent); font-weight: 700;';
+        else if (g.points === 7) ptsClass = 'color: var(--color-gold); font-weight: 700;';
+        else if (g.points === 5) ptsClass = 'color: var(--color-primary); font-weight: 700;';
+        pointsBadge = `<span style="font-size: 0.75rem; margin-left: 0.5rem; ${ptsClass}">(+${g.points} pts)</span>`;
+      }
+
+      row.innerHTML = `
+        <div style="display:flex; flex-direction:column;">
+          <strong style="color: var(--color-text); font-size: 0.9rem;">${escapeHTML(g.participants?.name || 'Anônimo')}</strong>
+        </div>
+        <div style="font-family: var(--font-family); font-size: 1rem; font-weight: bold;">
+          <span style="color: var(--color-accent);">${g.home_score}</span>
+          <span style="color: var(--color-text-secondary); margin: 0 0.15rem;">x</span>
+          <span style="color: var(--color-accent);">${g.away_score}</span>
+          ${pointsBadge}
+        </div>
+      `;
+      listContainer.appendChild(row);
+    });
+
+  } catch (err) {
+    console.error("Erro ao auditar palpites:", err);
+    listContainer.innerHTML = '<p class="text-danger text-center" style="margin: 1.5rem 0;">Falha de conexão ao buscar palpites.</p>';
   }
 }
 

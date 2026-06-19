@@ -384,6 +384,20 @@
     </div>
   </div>
 
+  <!-- AUDIT GUESSES MODAL -->
+  <div id="audit-modal" class="modal-overlay hidden">
+    <div class="modal-content glass" style="max-width: 450px; width: 90%;">
+      <h2 style="font-size: 1.25rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; justify-content: center;">Auditoria de Palpites 👁</h2>
+      <div id="audit-match-header" style="font-size: 0.9rem; color: var(--color-accent); font-weight: 600; margin-bottom: 1rem; text-align: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;"></div>
+      
+      <div id="audit-guesses-list" style="max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.25); border-radius: var(--border-radius-sm); padding: 0.75rem;">
+        <!-- Dinamicamente preenchido -->
+      </div>
+      
+      <button id="close-audit-modal-btn" class="btn-secondary mt-3" style="width: 100%;">Fechar</button>
+    </div>
+  </div>
+
   <!-- JS APP SOURCE -->
   <script src="app.js?v=5"></script>
 </body>
