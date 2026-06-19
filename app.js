@@ -768,17 +768,19 @@ function renderGames() {
   const clientTodayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
 
   const filteredMatches = matches.filter(match => {
-    // 1. Group / Phase Filter
+    // Only group stage games
+    if (match.stage !== 'group') return false;
+
+    // Only starting from today's games (local date)
+    const matchLocalDateStr = new Date(match.match_date).toLocaleDateString('en-CA');
+    if (matchLocalDateStr < clientTodayStr) return false;
+
+    // 1. Group Filter
     if (activeGroupFilter !== 'all') {
-      if (activeGroupFilter === 'playoff') {
-        if (match.stage !== 'playoff') return false;
-      } else {
-        if (match.group_name !== activeGroupFilter) return false;
-      }
+      if (match.group_name !== activeGroupFilter) return false;
     }
 
     // 2. Calendar Filter (Today, Upcoming, Finished)
-    const matchLocalDateStr = new Date(match.match_date).toLocaleDateString('en-CA');
     const isFinished = match.status === 'finished';
 
     if (activeFilter === 'today') {
@@ -1825,6 +1827,7 @@ async function openPlayerAuditModal(playerId, playerName) {
   listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1.5rem 0;">Buscando palpites... ⏳</p>';
 
   try {
+    const clientTodayStr = new Date().toLocaleDateString('en-CA');
     // Busca todos os palpites deste participante
     const { data: guesses, error } = await supabase
       .from('guesses')
@@ -1839,8 +1842,15 @@ async function openPlayerAuditModal(playerId, playerName) {
       guessMap[g.match_id] = g;
     });
 
-    if (matches.length === 0) {
-      listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1.5rem 0;">Nenhum jogo cadastrado.</p>';
+    // Filter matches to match the active bolão rules: only group stage starting from today
+    const activeMatches = matches.filter(match => {
+      if (match.stage !== 'group') return false;
+      const matchLocalDateStr = new Date(match.match_date).toLocaleDateString('en-CA');
+      return matchLocalDateStr >= clientTodayStr;
+    });
+
+    if (activeMatches.length === 0) {
+      listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1.5rem 0;">Nenhum jogo de fase de grupos iniciando a partir de hoje.</p>';
       return;
     }
 
@@ -1849,7 +1859,7 @@ async function openPlayerAuditModal(playerId, playerName) {
     // Verifica se o participante auditado é o próprio usuário logado
     const isSelf = currentUser && playerId === currentUser.id;
 
-    matches.forEach(match => {
+    activeMatches.forEach(match => {
       const isLocked = new Date(match.match_date) <= new Date();
       const g = guessMap[match.id] || null;
       const hasGuess = g !== null;
