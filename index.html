@@ -102,6 +102,36 @@
           <h2>Classificação Geral</h2>
           <p>Veja quem está liderando o bolão dos amigos!</p>
         </div>
+
+        <!-- PRIZE POOL DISPLAY -->
+        <div class="prize-pool-container glass" style="display: flex; gap: 1rem; align-items: center; justify-content: space-around; padding: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; background: rgba(9, 26, 20, 0.4); border: 1px solid var(--glass-border); border-radius: var(--border-radius-md);">
+          <div class="prize-card total" style="text-align: center; background: rgba(57, 255, 20, 0.05); border: 1px solid rgba(57, 255, 20, 0.2); padding: 0.75rem 1.5rem; border-radius: var(--border-radius-sm); min-width: 160px;">
+            <div style="font-size: 0.85rem; color: var(--color-text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Prêmio Total 💰</div>
+            <div id="prize-total-value" style="font-size: 1.75rem; font-weight: 800; color: var(--color-accent); margin-top: 0.25rem;">R$ 0,00</div>
+            <small style="color: var(--color-text-secondary); font-size: 0.75rem;"><span id="participants-count-prize">0</span> participantes</small>
+          </div>
+          
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;">
+            <!-- 1st Place -->
+            <div class="prize-card spot" style="text-align: center; background: rgba(255, 184, 0, 0.05); border: 1px solid rgba(255, 184, 0, 0.20); padding: 0.6rem 1.25rem; border-radius: var(--border-radius-sm); min-width: 120px;">
+              <div style="font-size: 0.75rem; color: var(--color-text-secondary); font-weight: 500;">1º Lugar 🥇 (50%)</div>
+              <div id="prize-1st-value" style="font-size: 1.25rem; font-weight: 700; color: var(--color-gold); margin-top: 0.15rem;">R$ 0,00</div>
+            </div>
+            
+            <!-- 2nd Place -->
+            <div class="prize-card spot" style="text-align: center; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.6rem 1.25rem; border-radius: var(--border-radius-sm); min-width: 120px;">
+              <div style="font-size: 0.75rem; color: var(--color-text-secondary); font-weight: 500;">2º Lugar 🥈 (30%)</div>
+              <div id="prize-2nd-value" style="font-size: 1.25rem; font-weight: 700; color: #d1d5db; margin-top: 0.15rem;">R$ 0,00</div>
+            </div>
+            
+            <!-- 3rd Place -->
+            <div class="prize-card spot" style="text-align: center; background: rgba(255, 184, 0, 0.01); border: 1px solid rgba(191, 128, 64, 0.15); padding: 0.6rem 1.25rem; border-radius: var(--border-radius-sm); min-width: 120px;">
+              <div style="font-size: 0.75rem; color: var(--color-text-secondary); font-weight: 500;">3º Lugar 🥉 (20%)</div>
+              <div id="prize-3rd-value" style="font-size: 1.25rem; font-weight: 700; color: #d97706; margin-top: 0.15rem;">R$ 0,00</div>
+            </div>
+          </div>
+        </div>
+
         <div class="ranking-wrapper glass">
           <table class="ranking-table">
             <thead>

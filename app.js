@@ -684,6 +684,22 @@ async function fetchRanking() {
 
 // Render Ranking Table
 function renderRankingTable() {
+  // Update prize pool values dynamically (R$ 10 per participant)
+  const count = participants.length;
+  const totalPrize = count * 10;
+  
+  const countEl = document.getElementById('participants-count-prize');
+  const totalEl = document.getElementById('prize-total-value');
+  const firstEl = document.getElementById('prize-1st-value');
+  const secondEl = document.getElementById('prize-2nd-value');
+  const thirdEl = document.getElementById('prize-3rd-value');
+
+  if (countEl) countEl.textContent = count;
+  if (totalEl) totalEl.textContent = `R$ ${totalPrize.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (firstEl) firstEl.textContent = `R$ ${(totalPrize * 0.5).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (secondEl) secondEl.textContent = `R$ ${(totalPrize * 0.3).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (thirdEl) thirdEl.textContent = `R$ ${(totalPrize * 0.2).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
   const rankingList = document.getElementById('ranking-list');
   rankingList.innerHTML = '';
 
