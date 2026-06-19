@@ -551,6 +551,41 @@ input[type="text"]:focus, input[type="password"]:focus, select:focus {
   border: 1px solid var(--glass-border);
 }
 
+.btn-audit-player {
+  background: transparent;
+  border: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+  transition: all var(--transition-fast);
+}
+
+.btn-audit-player:hover {
+  color: var(--color-accent);
+  background: rgba(57, 255, 20, 0.1);
+  transform: scale(1.15);
+}
+
+.audit-player-match-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--border-radius-sm);
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.audit-player-match-card:last-child {
+  margin-bottom: 0;
+}
+
 /* ==========================================================================
    CALENDAR FILTERS & GAMES
    ========================================================================== */

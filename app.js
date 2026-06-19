@@ -338,6 +338,11 @@ function setupEventListeners() {
   document.getElementById('close-audit-modal-btn').addEventListener('click', () => {
     document.getElementById('audit-modal').classList.add('hidden');
   });
+
+  // Close Player Audit Modal
+  document.getElementById('close-audit-player-modal-btn').addEventListener('click', () => {
+    document.getElementById('audit-player-modal').classList.add('hidden');
+  });
 }
 
 // 5. ONBOARDING & AUTH ACTIONS
@@ -733,6 +738,7 @@ function renderRankingTable() {
         <div class="cell-name-container">
           <span>${escapeHTML(p.name)}</span>
           ${(currentUser && p.id === currentUser.id) ? '<span class="badge-self-indicator">Você</span>' : ''}
+          <button class="btn-audit-player" data-player-id="${p.id}" data-player-name="${escapeHTML(p.name)}" title="Auditar palpites de ${escapeHTML(p.name)}">👁️</button>
         </div>
       </td>
       <td class="col-exact">${p.exacts}</td>
@@ -741,6 +747,16 @@ function renderRankingTable() {
       <td class="col-pts"><span class="points-total">${p.points}</span></td>
     `;
     rankingList.appendChild(tr);
+  });
+
+  // Attach event listeners to player audit buttons
+  const playerAuditBtns = rankingList.querySelectorAll('.btn-audit-player');
+  playerAuditBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const playerId = btn.getAttribute('data-player-id');
+      const playerName = btn.getAttribute('data-player-name');
+      openPlayerAuditModal(playerId, playerName);
+    });
   });
 }
 
@@ -1793,6 +1809,138 @@ async function openAuditModal(matchId) {
   } catch (err) {
     console.error("Erro ao auditar palpites:", err);
     listContainer.innerHTML = '<p class="text-danger text-center" style="margin: 1.5rem 0;">Falha de conexão ao buscar palpites.</p>';
+  }
+}
+
+async function openPlayerAuditModal(playerId, playerName) {
+  const modal = document.getElementById('audit-player-modal');
+  const nameEl = document.getElementById('audit-player-name');
+  const listContainer = document.getElementById('audit-player-guesses-list');
+
+  // Define o nome do participante
+  nameEl.textContent = playerName;
+  modal.classList.remove('hidden');
+
+  // Mensagem de carregamento
+  listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1.5rem 0;">Buscando palpites... ⏳</p>';
+
+  try {
+    // Busca todos os palpites deste participante
+    const { data: guesses, error } = await supabase
+      .from('guesses')
+      .select('match_id, home_score, away_score, points')
+      .eq('participant_id', playerId);
+
+    if (error) throw error;
+
+    // Coloca os palpites em um mapa para busca rápida por match_id
+    const guessMap = {};
+    (guesses || []).forEach(g => {
+      guessMap[g.match_id] = g;
+    });
+
+    if (matches.length === 0) {
+      listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1.5rem 0;">Nenhum jogo cadastrado.</p>';
+      return;
+    }
+
+    listContainer.innerHTML = '';
+    
+    // Verifica se o participante auditado é o próprio usuário logado
+    const isSelf = currentUser && playerId === currentUser.id;
+
+    matches.forEach(match => {
+      const isLocked = new Date(match.match_date) <= new Date();
+      const g = guessMap[match.id] || null;
+      const hasGuess = g !== null;
+
+      const card = document.createElement('div');
+      card.className = 'audit-player-match-card';
+
+      // 1. Determina o texto do palpite (e esconde se for jogo futuro de outro jogador)
+      let guessText = '- x -';
+      let lockSuffix = '';
+      
+      if (hasGuess) {
+        if (isLocked || isSelf) {
+          guessText = `${g.home_score} x ${g.away_score}`;
+        } else {
+          guessText = '🔒 Oculto';
+          lockSuffix = ' (Palpitado)';
+        }
+      } else {
+        guessText = 'Sem palpite';
+      }
+
+      // 2. Determina o placar oficial / status do jogo
+      let officialScoreText = '';
+      if (match.status === 'finished' && match.home_score !== null && match.away_score !== null) {
+        officialScoreText = `Placar oficial: ${match.home_score} x ${match.away_score}`;
+      } else if (isLocked) {
+        officialScoreText = 'Em andamento';
+      } else {
+        officialScoreText = 'Não iniciado';
+      }
+
+      // 3. Determina o texto de pontos conquistados (se finalizado)
+      let pointsText = '';
+      if (match.status === 'finished') {
+        if (hasGuess) {
+          const pts = g.points !== null && g.points !== undefined ? g.points : 0;
+          let ptsClass = 'color: var(--color-text-secondary);';
+          if (pts === 10) ptsClass = 'color: var(--color-accent); font-weight: 700;';
+          else if (pts === 7) ptsClass = 'color: var(--color-gold); font-weight: 700;';
+          else if (pts === 5) ptsClass = 'color: var(--color-primary); font-weight: 700;';
+          pointsText = `<span style="font-size: 0.75rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(255,255,255,0.05); ${ptsClass}">+${pts} pts</span>`;
+        } else {
+          pointsText = `<span style="font-size: 0.75rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--color-text-secondary);">0 pts</span>`;
+        }
+      }
+
+      // 4. Badge do status da partida
+      let statusBadge = '';
+      if (match.status === 'finished') {
+        statusBadge = '<span style="font-size: 0.65rem; padding: 0.15rem 0.35rem; border-radius: 3px; background: rgba(255, 255, 255, 0.1); color: #9ca3af;">Encerrado</span>';
+      } else if (isLocked) {
+        statusBadge = '<span style="font-size: 0.65rem; padding: 0.15rem 0.35rem; border-radius: 3px; background: rgba(234, 179, 8, 0.15); color: #facc15;">Bloqueado</span>';
+      } else {
+        statusBadge = '<span style="font-size: 0.65rem; padding: 0.15rem 0.35rem; border-radius: 3px; background: rgba(57, 255, 20, 0.15); color: var(--color-accent);">Aberto</span>';
+      }
+
+      const homeFlagUrl = `https://flagcdn.com/${match.home_flag}.svg`;
+      const awayFlagUrl = `https://flagcdn.com/${match.away_flag}.svg`;
+
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--color-text-secondary); margin-bottom: 0.25rem;">
+          <span>${match.group_name} • ${formatDateBR(new Date(match.match_date))}</span>
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            ${statusBadge}
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.4rem; flex: 1; min-width: 0;">
+            <img src="${homeFlagUrl}" style="width: 18px; height: 12px; object-fit: cover; border-radius: 2px; flex-shrink: 0;" onerror="this.src='https://flagcdn.com/un.svg'">
+            <span style="font-size: 0.8rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${match.home_team}</span>
+          </div>
+          
+          <div style="text-align: center; padding: 0 0.25rem; min-width: 90px; flex-shrink: 0;">
+            <span style="font-size: 0.85rem; font-weight: bold; color: ${hasGuess && !isLocked && !isSelf ? 'var(--color-text-secondary)' : 'var(--color-accent)'};">${guessText}${lockSuffix}</span>
+            ${officialScoreText ? `<div style="font-size: 0.65rem; color: var(--color-text-secondary); margin-top: 0.05rem;">${officialScoreText}</div>` : ''}
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 0.4rem; flex: 1; justify-content: flex-end; min-width: 0; text-align: right;">
+            <span style="font-size: 0.8rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${match.away_team}</span>
+            <img src="${awayFlagUrl}" style="width: 18px; height: 12px; object-fit: cover; border-radius: 2px; flex-shrink: 0;" onerror="this.src='https://flagcdn.com/un.svg'">
+          </div>
+        </div>
+        ${pointsText ? `<div style="display: flex; justify-content: flex-end; margin-top: 0.15rem;">${pointsText}</div>` : ''}
+      `;
+      listContainer.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error("Erro ao carregar auditoria do jogador:", err);
+    listContainer.innerHTML = '<p class="text-danger text-center" style="margin: 1.5rem 0;">Falha ao carregar palpites.</p>';
   }
 }
 

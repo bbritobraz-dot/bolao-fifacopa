@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
   <!-- Supabase JS Local -->
   <script src="supabase.js"></script>
 </head>
@@ -398,7 +398,23 @@
     </div>
   </div>
 
+  <!-- AUDIT PLAYER GUESSES MODAL -->
+  <div id="audit-player-modal" class="modal-overlay hidden">
+    <div class="modal-content glass" style="max-width: 500px; width: 95%;">
+      <h2 style="font-size: 1.25rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; justify-content: center;">Palpites de <span id="audit-player-name"></span> 👁</h2>
+      <div style="font-size: 0.8rem; color: var(--color-text-secondary); text-align: center; margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
+        Palpites futuros de outros jogadores ficam ocultos (🔒).
+      </div>
+      
+      <div id="audit-player-guesses-list" style="max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.25); border-radius: var(--border-radius-sm); padding: 0.75rem;">
+        <!-- Dinamicamente preenchido -->
+      </div>
+      
+      <button id="close-audit-player-modal-btn" class="btn-secondary mt-3" style="width: 100%;">Fechar</button>
+    </div>
+  </div>
+
   <!-- JS APP SOURCE -->
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
