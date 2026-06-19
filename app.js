@@ -638,6 +638,20 @@ async function fetchGuesses() {
   } else {
     userGuesses = {};
     (data || []).forEach(g => {
+      // Recalcular pontos client-side sob as novas regras
+      const match = matches.find(m => m.id === g.match_id);
+      let pts = 0;
+      if (match && match.status === 'finished' && match.home_score !== null && match.away_score !== null) {
+        if (g.home_score === match.home_score && g.away_score === match.away_score) {
+          pts = 10;
+        } else if ((g.home_score - g.away_score) === (match.home_score - match.away_score) &&
+                   Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
+          pts = 5;
+        } else if (Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
+          pts = 3;
+        }
+      }
+      g.points = pts;
       userGuesses[g.match_id] = g;
     });
   }
@@ -652,19 +666,40 @@ async function fetchRanking() {
         id,
         name,
         guesses (
-          points
+          match_id,
+          home_score,
+          away_score
         )
       `);
 
     if (error) throw error;
 
-    // Calculate details for ranking
+    // Calculate details for ranking using client-side points logic (10, 5, 3)
     participants = (data || []).map(p => {
       const gList = p.guesses || [];
-      const totalPoints = gList.reduce((sum, g) => sum + (g.points || 0), 0);
-      const exacts = gList.filter(g => g.points === 10).length;
-      const diffs = gList.filter(g => g.points === 5).length;
-      const wins = gList.filter(g => g.points === 3).length;
+      let totalPoints = 0;
+      let exacts = 0;
+      let diffs = 0;
+      let wins = 0;
+
+      gList.forEach(g => {
+        const match = matches.find(m => m.id === g.match_id);
+        if (match && match.status === 'finished' && match.home_score !== null && match.away_score !== null) {
+          let pts = 0;
+          if (g.home_score === match.home_score && g.away_score === match.away_score) {
+            pts = 10;
+            exacts++;
+          } else if ((g.home_score - g.away_score) === (match.home_score - match.away_score) &&
+                     Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
+            pts = 5;
+            diffs++;
+          } else if (Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
+            pts = 3;
+            wins++;
+          }
+          totalPoints += pts;
+        }
+      });
 
       return {
         id: p.id,
@@ -1757,6 +1792,22 @@ async function openAuditModal(matchId) {
 
     if (error) throw error;
 
+    // Recalcular pontos client-side sob as novas regras
+    (guesses || []).forEach(g => {
+      let pts = 0;
+      if (match.status === 'finished' && match.home_score !== null && match.away_score !== null) {
+        if (g.home_score === match.home_score && g.away_score === match.away_score) {
+          pts = 10;
+        } else if ((g.home_score - g.away_score) === (match.home_score - match.away_score) &&
+                   Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
+          pts = 5;
+        } else if (Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
+          pts = 3;
+        }
+      }
+      g.points = pts;
+    });
+
     // Sort: If match is finished, sort by points DESC, then name ASC.
     // If ongoing/not finished, sort by name ASC.
     guesses.sort((a, b) => {
@@ -1839,6 +1890,20 @@ async function openPlayerAuditModal(playerId, playerName) {
     // Coloca os palpites em um mapa para busca rápida por match_id
     const guessMap = {};
     (guesses || []).forEach(g => {
+      // Recalcular pontos client-side sob as novas regras
+      const match = matches.find(m => m.id === g.match_id);
+      let pts = 0;
+      if (match && match.status === 'finished' && match.home_score !== null && match.away_score !== null) {
+        if (g.home_score === match.home_score && g.away_score === match.away_score) {
+          pts = 10;
+        } else if ((g.home_score - g.away_score) === (match.home_score - match.away_score) &&
+                   Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
+          pts = 5;
+        } else if (Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
+          pts = 3;
+        }
+      }
+      g.points = pts;
       guessMap[g.match_id] = g;
     });
 
