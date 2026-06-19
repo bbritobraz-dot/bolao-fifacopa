@@ -441,7 +441,7 @@ async function syncOfficialResultsFromAPI() {
 
     const TRANSLATION_MAP = {
       "Mexico": "México", "South Africa": "África do Sul", "South Korea": "Coreia do Sul", "Czech Republic": "Tchéquia", "Czechia": "Tchéquia",
-      "Canada": "Canadá", "Bosnia and Herzegovina": "Bósnia e Herz.", "Bosnia-Herzegovina": "Bósnia e Herz.", "Qatar": "Catar", "Switzerland": "Suíça",
+      "Canada": "Canadá", "Bosnia and Herzegovina": "Bósnia e Herz.", "Bosnia-Herzegovina": "Bósnia e Herz.", "Bosnia & Herzegovina": "Bósnia e Herz.", "Qatar": "Catar", "Switzerland": "Suíça",
       "Brazil": "Brasil", "Morocco": "Marrocos", "Scotland": "Escócia", "Haiti": "Haiti",
       "United States": "EUA", "USA": "EUA", "Paraguay": "Paraguai", "Australia": "Austrália", "Turkey": "Turquia",
       "Germany": "Alemanha", "Curaçao": "Curaçao", "Ivory Coast": "Costa do Marfim", "Ecuador": "Equador",
@@ -462,28 +462,45 @@ async function syncOfficialResultsFromAPI() {
 
     for (const apiMatch of apiMatches) {
       if (apiMatch.score && apiMatch.score.ft) {
-        const homeScore = apiMatch.score.ft[0];
-        const awayScore = apiMatch.score.ft[1];
-
         const homeTranslated = translate(apiMatch.team1);
         const awayTranslated = translate(apiMatch.team2);
 
         // Find the match in our database matches list (Fase de grupos)
+        // Match home/away either way to handle potential swaps
         const dbMatch = matches.find(m => 
           m.stage === 'group' && 
-          (m.home_team === homeTranslated && m.away_team === awayTranslated)
+          ((m.home_team === homeTranslated && m.away_team === awayTranslated) ||
+           (m.home_team === awayTranslated && m.away_team === homeTranslated))
         );
 
         if (dbMatch) {
-          // If score is different or currently empty
-          if (dbMatch.home_score !== homeScore || dbMatch.away_score !== awayScore || dbMatch.status !== 'finished') {
+          const isSwapped = dbMatch.home_team === awayTranslated && dbMatch.away_team === homeTranslated;
+          const homeScore = isSwapped ? apiMatch.score.ft[1] : apiMatch.score.ft[0];
+          const awayScore = isSwapped ? apiMatch.score.ft[0] : apiMatch.score.ft[1];
+
+          const needsScoreUpdate = dbMatch.home_score !== homeScore || dbMatch.away_score !== awayScore || dbMatch.status !== 'finished';
+          const needsTeamSwap = isSwapped;
+
+          if (needsScoreUpdate || needsTeamSwap) {
+            const updateObj = {
+              status: 'finished'
+            };
+
+            if (needsScoreUpdate) {
+              updateObj.home_score = homeScore;
+              updateObj.away_score = awayScore;
+            }
+
+            if (needsTeamSwap) {
+              updateObj.home_team = homeTranslated;
+              updateObj.away_team = awayTranslated;
+              updateObj.home_flag = dbMatch.away_flag;
+              updateObj.away_flag = dbMatch.home_flag;
+            }
+
             const { error } = await supabase
               .from('matches')
-              .update({
-                home_score: homeScore,
-                away_score: awayScore,
-                status: 'finished'
-              })
+              .update(updateObj)
               .eq('id', dbMatch.id);
 
             if (!error) {
