@@ -18,6 +18,9 @@ let activeFilter = 'today'; // 'today', 'upcoming', 'finished', 'all'
 let activeGroupFilter = 'all'; // 'all', 'Grupo A', etc.
 let isAdmin = false;
 let onboardingMode = 'login'; // 'login' or 'register'
+let inviteCodes = [];
+let accessRequests = [];
+let adminAccessSubtab = 'requests'; // 'requests' or 'codes'
 
 // Playoff advancement mapping
 // Format: { source_bracket_node: { next_match_id, position: 'home' | 'away' } }
@@ -219,6 +222,10 @@ function setupEventListeners() {
     document.getElementById('onboarding-desc').textContent = 'Acesse sua conta para palpitar nos jogos da Copa.';
     document.getElementById('join-btn').textContent = 'Entrar no Bolão';
     document.getElementById('onboarding-error').classList.add('hidden');
+    
+    // Hide invite code controls
+    document.getElementById('invite-code-input').classList.add('hidden');
+    document.getElementById('request-access-container').classList.add('hidden');
   });
 
   document.getElementById('tab-register-btn').addEventListener('click', () => {
@@ -234,8 +241,12 @@ function setupEventListeners() {
     
     document.getElementById('onboarding-title').textContent = 'Primeiro Acesso';
     document.getElementById('onboarding-desc').textContent = 'Crie seu cadastro (usuário e senha) para participar!';
-    document.getElementById('join-btn').textContent = 'Cadastrar e Entrar';
+    document.getElementById('join-btn').textContent = 'Cadastrar com Código';
     document.getElementById('onboarding-error').classList.add('hidden');
+    
+    // Show invite code controls
+    document.getElementById('invite-code-input').classList.remove('hidden');
+    document.getElementById('request-access-container').classList.remove('hidden');
   });
 
   // Onboarding Join
@@ -246,6 +257,12 @@ function setupEventListeners() {
   document.getElementById('password-input').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleJoinOrRegister();
   });
+  document.getElementById('invite-code-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleJoinOrRegister();
+  });
+
+  // Request Access Code Button
+  document.getElementById('request-code-btn').addEventListener('click', handleRequestAccessCode);
 
   // Logout button
   const logoutBtn = document.getElementById('logout-btn');
@@ -297,6 +314,23 @@ function setupEventListeners() {
   // Admin Sync via API
   document.getElementById('admin-sync-api-btn').addEventListener('click', syncOfficialResultsFromAPI);
 
+  // Admin Invite/Request Sub-tabs
+  document.getElementById('admin-view-requests-btn').addEventListener('click', () => {
+    adminAccessSubtab = 'requests';
+    document.getElementById('admin-view-requests-btn').classList.add('active-admin-subtab');
+    document.getElementById('admin-view-codes-btn').classList.remove('active-admin-subtab');
+    renderAdminAccessSection();
+  });
+
+  document.getElementById('admin-view-codes-btn').addEventListener('click', () => {
+    adminAccessSubtab = 'codes';
+    document.getElementById('admin-view-codes-btn').classList.add('active-admin-subtab');
+    document.getElementById('admin-view-requests-btn').classList.remove('active-admin-subtab');
+    renderAdminAccessSection();
+  });
+
+  document.getElementById('admin-gen-manual-code-btn').addEventListener('click', handleAdminGenerateManualCode);
+
   // Danger Zone: Reset placares
   document.getElementById('reset-all-matches-btn').addEventListener('click', handleDangerReset);
 }
@@ -328,6 +362,22 @@ async function handleJoinOrRegister() {
   try {
     if (onboardingMode === 'register') {
       // 1. REGISTER FLOW
+      // Verify invite code first
+      const inviteCodeInput = document.getElementById('invite-code-input').value.trim().toUpperCase();
+      if (!inviteCodeInput) {
+        showError(errorMsg, "Por favor, digite o código de acesso fornecido pelo administrador.");
+        showLoading(false);
+        return;
+      }
+
+      const activeCodes = await getAccessConfig('invite_codes', []);
+      const codeIndex = activeCodes.indexOf(inviteCodeInput);
+      if (codeIndex === -1) {
+        showError(errorMsg, "Código de acesso inválido ou já utilizado!");
+        showLoading(false);
+        return;
+      }
+
       // Check if name already exists
       const { data: existing, error: checkError } = await supabase
         .from('participants')
@@ -357,8 +407,23 @@ async function handleJoinOrRegister() {
 
       if (insertError) throw insertError;
 
+      // Consume the code
+      activeCodes.splice(codeIndex, 1);
+      await saveAccessConfig('invite_codes', activeCodes);
+
+      // Mark request as used if it exists
+      const requests = await getAccessConfig('access_requests', []);
+      const req = requests.find(r => r.invite_code === inviteCodeInput);
+      if (req) {
+        req.status = 'registered';
+        await saveAccessConfig('access_requests', requests);
+      }
+
       currentUser = newParticipant;
       localStorage.setItem('bolao_session_id', currentUser.session_id);
+      
+      // Clean up invite code input
+      document.getElementById('invite-code-input').value = '';
       
       await loginSuccessful();
     } else {
@@ -421,6 +486,7 @@ async function handleAdminLogin() {
       document.getElementById('admin-auth-section').classList.add('hidden');
       document.getElementById('admin-dashboard-section').classList.remove('hidden');
       await renderAdminMatches();
+      await renderAdminAccessSection();
     } else {
       showError(errorMsg, "Senha de admin incorreta!");
     }
@@ -1294,6 +1360,313 @@ async function handleDangerReset() {
     alert("Falha ao resetar. Detalhes no console.");
   }
   showLoading(false);
+}
+
+// ==========================================================================
+// ACCESS REQUESTS & INVITE CODES SYSTEM
+// ==========================================================================
+
+async function getAccessConfig(key, defaultValue) {
+  try {
+    const { data, error } = await supabase
+      .from('config')
+      .select('value')
+      .eq('key', key)
+      .maybeSingle();
+      
+    if (error) throw error;
+    if (data && data.value) {
+      return JSON.parse(data.value);
+    }
+  } catch (err) {
+    console.error(`Erro ao obter config ${key}:`, err);
+  }
+  return defaultValue;
+}
+
+async function saveAccessConfig(key, value) {
+  try {
+    const { error } = await supabase
+      .from('config')
+      .upsert({
+        key: key,
+        value: JSON.stringify(value)
+      });
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error(`Erro ao salvar config ${key}:`, err);
+    return false;
+  }
+}
+
+async function handleRequestAccessCode() {
+  const nameInput = document.getElementById('username-input').value.trim();
+  const errorMsg = document.getElementById('onboarding-error');
+
+  if (!nameInput || nameInput.length < 3) {
+    showError(errorMsg, "Por favor, digite seu nome no campo 'Nome ou Apelido' para solicitar o código.");
+    return;
+  }
+
+  showLoading(true);
+  try {
+    const requests = await getAccessConfig('access_requests', []);
+    
+    // Check if name already registered in participants
+    const { data: existingUser, error: userError } = await supabase
+      .from('participants')
+      .select('id')
+      .ilike('name', nameInput)
+      .maybeSingle();
+
+    if (existingUser) {
+      showError(errorMsg, "Este nome já está cadastrado no bolão!");
+      showLoading(false);
+      return;
+    }
+
+    // Check if name already requested
+    const existingReq = requests.find(r => r.name.toLowerCase() === nameInput.toLowerCase());
+    if (existingReq) {
+      if (existingReq.status === 'pending') {
+        alert("Você já enviou uma solicitação de acesso. Ela está pendente de aprovação com o administrador.");
+      } else if (existingReq.status === 'approved') {
+        alert(`Sua solicitação já foi aprovada pelo administrador!\nUse o código: ${existingReq.invite_code}`);
+        document.getElementById('invite-code-input').value = existingReq.invite_code;
+      } else {
+        alert("Sua solicitação de acesso foi recusada. Fale com o administrador.");
+      }
+      showLoading(false);
+      return;
+    }
+
+    // Add new request
+    requests.push({
+      name: nameInput,
+      status: 'pending',
+      invite_code: null,
+      created_at: new Date().toISOString()
+    });
+
+    await saveAccessConfig('access_requests', requests);
+    alert("Solicitação enviada com sucesso!\nEntre em contato com o administrador do bolão para pagar a taxa e receber seu código de acesso.");
+    
+    errorMsg.classList.add('hidden');
+  } catch (err) {
+    console.error("Erro ao solicitar acesso:", err);
+    showError(errorMsg, "Erro ao enviar solicitação.");
+  }
+  showLoading(false);
+}
+
+// Generate random invite code
+function generateRandomCode() {
+  return 'COPA-' + Math.floor(1000 + Math.random() * 9000);
+}
+
+async function handleAdminGenerateManualCode() {
+  showLoading(true);
+  try {
+    const activeCodes = await getAccessConfig('invite_codes', []);
+    let newCode = generateRandomCode();
+    
+    // Ensure uniqueness
+    while (activeCodes.includes(newCode)) {
+      newCode = generateRandomCode();
+    }
+
+    activeCodes.push(newCode);
+    const success = await saveAccessConfig('invite_codes', activeCodes);
+    
+    if (success) {
+      alert(`Código manual gerado com sucesso: ${newCode}`);
+      inviteCodes = activeCodes;
+      await renderAdminAccessSection();
+    } else {
+      alert("Erro ao salvar o novo código.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao gerar código.");
+  }
+  showLoading(false);
+}
+
+async function renderAdminAccessSection() {
+  try {
+    // Load config states
+    inviteCodes = await getAccessConfig('invite_codes', []);
+    accessRequests = await getAccessConfig('access_requests', []);
+
+    // Set counts in sub-tab buttons
+    document.getElementById('requests-count').textContent = accessRequests.filter(r => r.status === 'pending').length;
+    document.getElementById('codes-count').textContent = inviteCodes.length;
+
+    const listContainer = document.getElementById('admin-access-list');
+    listContainer.innerHTML = '';
+
+    if (adminAccessSubtab === 'requests') {
+      const pendingReqs = accessRequests.filter(r => r.status === 'pending');
+      
+      if (pendingReqs.length === 0) {
+        listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1rem 0;">Nenhuma solicitação de acesso pendente.</p>';
+        return;
+      }
+
+      pendingReqs.forEach((req) => {
+        const item = document.createElement('div');
+        item.className = 'admin-match-row'; // Use same styling layout
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+        item.style.padding = '0.5rem 0';
+        item.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+
+        item.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:0.2rem;">
+            <strong style="color:var(--color-text);">${escapeHTML(req.name)}</strong>
+            <small style="color:var(--color-text-secondary); font-size:0.75rem;">Solicitado em: ${new Date(req.created_at).toLocaleString()}</small>
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn-primary btn-sm btn-approve" data-name="${escapeHTML(req.name)}">Aprovar</button>
+            <button class="btn-danger btn-sm btn-reject" data-name="${escapeHTML(req.name)}" style="padding:0.25rem 0.5rem; font-size:0.8rem;">Rejeitar</button>
+          </div>
+        `;
+        listContainer.appendChild(item);
+      });
+
+      // Bind approve/reject buttons
+      listContainer.querySelectorAll('.btn-approve').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const reqName = btn.getAttribute('data-name');
+          await handleApproveRequest(reqName);
+        });
+      });
+
+      listContainer.querySelectorAll('.btn-reject').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const reqName = btn.getAttribute('data-name');
+          await handleRejectRequest(reqName);
+        });
+      });
+
+    } else {
+      // CODES TAB
+      if (inviteCodes.length === 0) {
+        listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1rem 0;">Nenhum código de convite ativo no momento.</p>';
+        return;
+      }
+
+      inviteCodes.forEach((code) => {
+        const item = document.createElement('div');
+        item.className = 'admin-match-row';
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+        item.style.padding = '0.5rem 0';
+        item.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+
+        item.innerHTML = `
+          <div>
+            <code style="font-family:monospace; font-size:1.1rem; color:var(--color-accent); font-weight:bold; letter-spacing:1px;">${code}</code>
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn-secondary btn-sm btn-copy-code" data-code="${code}">Copiar</button>
+            <button class="btn-danger btn-sm btn-delete-code" data-code="${code}" style="padding:0.25rem 0.5rem; font-size:0.8rem;">Excluir</button>
+          </div>
+        `;
+        listContainer.appendChild(item);
+      });
+
+      // Bind copy/delete buttons
+      listContainer.querySelectorAll('.btn-copy-code').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const code = btn.getAttribute('data-code');
+          navigator.clipboard.writeText(code);
+          btn.textContent = 'Copiado!';
+          setTimeout(() => btn.textContent = 'Copiar', 2000);
+        });
+      });
+
+      listContainer.querySelectorAll('.btn-delete-code').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const code = btn.getAttribute('data-code');
+          if (confirm(`Excluir o código ${code}? Ele não poderá mais ser usado.`)) {
+            showLoading(true);
+            const activeCodes = await getAccessConfig('invite_codes', []);
+            const index = activeCodes.indexOf(code);
+            if (index !== -1) {
+              activeCodes.splice(index, 1);
+              await saveAccessConfig('invite_codes', activeCodes);
+              
+              // Also update status in request to code_deleted
+              const reqs = await getAccessConfig('access_requests', []);
+              const reqIndex = reqs.findIndex(r => r.invite_code === code);
+              if (reqIndex !== -1) {
+                reqs[reqIndex].status = 'code_deleted';
+                await saveAccessConfig('access_requests', reqs);
+              }
+
+              await renderAdminAccessSection();
+            }
+            showLoading(false);
+          }
+        });
+      });
+    }
+  } catch (err) {
+    console.error("Erro ao renderizar seção de acessos:", err);
+  }
+}
+
+async function handleApproveRequest(reqName) {
+  showLoading(true);
+  try {
+    const requests = await getAccessConfig('access_requests', []);
+    const req = requests.find(r => r.name === reqName);
+    
+    if (req && req.status === 'pending') {
+      const activeCodes = await getAccessConfig('invite_codes', []);
+      let newCode = generateRandomCode();
+      while (activeCodes.includes(newCode)) {
+        newCode = generateRandomCode();
+      }
+
+      activeCodes.push(newCode);
+      req.status = 'approved';
+      req.invite_code = newCode;
+
+      await saveAccessConfig('invite_codes', activeCodes);
+      await saveAccessConfig('access_requests', requests);
+
+      alert(`Solicitação de ${reqName} aprovada!\nCódigo gerado: ${newCode}\nCopie e envie para o participante.`);
+      await renderAdminAccessSection();
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao aprovar solicitação.");
+  }
+  showLoading(false);
+}
+
+async function handleRejectRequest(reqName) {
+  if (confirm(`Deseja realmente rejeitar/excluir a solicitação de ${reqName}?`)) {
+    showLoading(true);
+    try {
+      const requests = await getAccessConfig('access_requests', []);
+      const index = requests.findIndex(r => r.name === reqName);
+      if (index !== -1) {
+        requests.splice(index, 1);
+        await saveAccessConfig('access_requests', requests);
+        await renderAdminAccessSection();
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao rejeitar solicitação.");
+    }
+    showLoading(false);
+  }
 }
 
 // 9. UTILITY FUNCTIONS

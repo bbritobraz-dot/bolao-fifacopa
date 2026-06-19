@@ -50,7 +50,12 @@
       <div class="input-group">
         <input type="text" id="username-input" placeholder="Nome ou Apelido" maxlength="25">
         <input type="password" id="password-input" placeholder="Sua Senha (mín. 4 caracteres)" maxlength="20">
+        <input type="text" id="invite-code-input" placeholder="Código de Primeiro Acesso" class="hidden" maxlength="15" style="margin-top: 0.5rem; text-transform: uppercase;">
         <button id="join-btn" class="btn-primary">Entrar no Bolão</button>
+      </div>
+      <div id="request-access-container" class="hidden" style="margin-top: 1rem; text-align: center;">
+        <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 0.5rem;">Não tem um código de acesso?</p>
+        <button id="request-code-btn" class="btn-secondary" style="width: 100%; font-size: 0.85rem; padding: 0.5rem;">Solicitar Código ao Administrador ✉</button>
       </div>
       <p id="onboarding-error" class="error-msg hidden"></p>
     </div>
@@ -305,6 +310,22 @@
 
               <div id="admin-matches-list" class="admin-matches-list">
                 <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- ACCESS REQUESTS & INVITE CODES -->
+            <div class="admin-panel-card glass mt-4">
+              <h3>Solicitações de Acesso & Códigos de Convite 🔑</h3>
+              <p class="text-secondary" style="margin-bottom: 1rem;">Gerencie os pedidos de novos participantes e crie códigos de acesso.</p>
+              
+              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem;">
+                <button id="admin-view-requests-btn" class="btn-secondary btn-sm active-admin-subtab">Solicitações Pendentes (<span id="requests-count">0</span>)</button>
+                <button id="admin-view-codes-btn" class="btn-secondary btn-sm">Códigos Ativos (<span id="codes-count">0</span>)</button>
+                <button id="admin-gen-manual-code-btn" class="btn-primary btn-sm" style="margin-left: auto;">+ Gerar Código Manual</button>
+              </div>
+
+              <div id="admin-access-list" style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.25); border-radius: var(--border-radius-sm); padding: 0.75rem;">
+                <!-- Dinamicamente preenchido -->
               </div>
             </div>
 
