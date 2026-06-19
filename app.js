@@ -663,8 +663,8 @@ async function fetchRanking() {
       const gList = p.guesses || [];
       const totalPoints = gList.reduce((sum, g) => sum + (g.points || 0), 0);
       const exacts = gList.filter(g => g.points === 10).length;
-      const diffs = gList.filter(g => g.points === 7).length;
-      const wins = gList.filter(g => g.points === 5).length;
+      const diffs = gList.filter(g => g.points === 5).length;
+      const wins = gList.filter(g => g.points === 3).length;
 
       return {
         id: p.id,
@@ -815,8 +815,8 @@ function renderGames() {
       const pts = hasGuess ? guess.points : 0;
       let ptsClass = 'points-0';
       if (pts === 10) ptsClass = 'points-10';
-      else if (pts === 7) ptsClass = 'points-7';
       else if (pts === 5) ptsClass = 'points-5';
+      else if (pts === 3) ptsClass = 'points-3';
 
       cardFooterHTML = `
         <div class="card-footer">
@@ -1789,8 +1789,8 @@ async function openAuditModal(matchId) {
       if (hasPoints) {
         let ptsClass = 'color: var(--color-text-secondary);';
         if (g.points === 10) ptsClass = 'color: var(--color-accent); font-weight: 700;';
-        else if (g.points === 7) ptsClass = 'color: var(--color-gold); font-weight: 700;';
-        else if (g.points === 5) ptsClass = 'color: var(--color-primary); font-weight: 700;';
+        else if (g.points === 5) ptsClass = 'color: var(--color-gold); font-weight: 700;';
+        else if (g.points === 3) ptsClass = 'color: var(--color-primary); font-weight: 700;';
         pointsBadge = `<span style="font-size: 0.75rem; margin-left: 0.5rem; ${ptsClass}">(+${g.points} pts)</span>`;
       }
 
@@ -1899,8 +1899,8 @@ async function openPlayerAuditModal(playerId, playerName) {
           const pts = g.points !== null && g.points !== undefined ? g.points : 0;
           let ptsClass = 'color: var(--color-text-secondary);';
           if (pts === 10) ptsClass = 'color: var(--color-accent); font-weight: 700;';
-          else if (pts === 7) ptsClass = 'color: var(--color-gold); font-weight: 700;';
-          else if (pts === 5) ptsClass = 'color: var(--color-primary); font-weight: 700;';
+          else if (pts === 5) ptsClass = 'color: var(--color-gold); font-weight: 700;';
+          else if (pts === 3) ptsClass = 'color: var(--color-primary); font-weight: 700;';
           pointsText = `<span style="font-size: 0.75rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(255,255,255,0.05); ${ptsClass}">+${pts} pts</span>`;
         } else {
           pointsText = `<span style="font-size: 0.75rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--color-text-secondary);">0 pts</span>`;

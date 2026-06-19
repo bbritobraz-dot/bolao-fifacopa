@@ -85,10 +85,10 @@ async function testDatabase() {
     if (!resUpdate2.ok) throw new Error(`Erro ao atualizar jogo: ${await resUpdate2.text()}`);
 
     // Fetch guess to check points
-    console.log("Verificando se os pontos foram recalculados para 7 (saldo)...");
+    console.log("Verificando se os pontos foram recalculados para 5 (saldo)...");
     const resCheck2 = await fetch(`${SUPABASE_URL}/rest/v1/guesses?participant_id=eq.${partId}&match_id=eq.17`, { headers });
     const check2 = await resCheck2.json();
-    console.log(`Pontos atuais: ${check2[0].points} (Esperado: 7) - ${check2[0].points === 7 ? 'APROVADO! ✓' : 'FALHOU! ✗'}`);
+    console.log(`Pontos atuais: ${check2[0].points} (Esperado: 5) - ${check2[0].points === 5 ? 'APROVADO! ✓' : 'FALHOU! ✗'}`);
 
     // 6. Update Match 17 score (Real result: France 2 x 0 Senegal - winner, different goal diff)
     console.log("\n6. Atualizando placar real do jogo 17 para 2 x 0 (Apenas vencedor, saldo diferente)...");
@@ -103,10 +103,10 @@ async function testDatabase() {
     if (!resUpdate3.ok) throw new Error(`Erro ao atualizar jogo: ${await resUpdate3.text()}`);
 
     // Fetch guess to check points
-    console.log("Verificando se os pontos foram recalculados para 5 (vencedor)...");
+    console.log("Verificando se os pontos foram recalculados para 3 (vencedor)...");
     const resCheck3 = await fetch(`${SUPABASE_URL}/rest/v1/guesses?participant_id=eq.${partId}&match_id=eq.17`, { headers });
     const check3 = await resCheck3.json();
-    console.log(`Pontos atuais: ${check3[0].points} (Esperado: 5) - ${check3[0].points === 5 ? 'APROVADO! ✓' : 'FALHOU! ✗'}`);
+    console.log(`Pontos atuais: ${check3[0].points} (Esperado: 3) - ${check3[0].points === 3 ? 'APROVADO! ✓' : 'FALHOU! ✗'}`);
 
     // Clean up: Delete test participant (cascades and deletes the guess, and resets match 17)
     console.log("\n7. Limpando dados de teste...");
