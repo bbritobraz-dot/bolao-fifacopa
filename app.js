@@ -760,6 +760,32 @@ function renderRankingTable() {
     }
 
     const position = idx + 1;
+    
+    // Add classification zone classes for fun
+    const total = participants.length;
+    if (total >= 4) {
+      // Rebaixamento (Z4)
+      let z4Count = 4;
+      if (total < 8) z4Count = 2;
+      const isRebaixamento = position > (total - z4Count);
+
+      // Libertadores (G4)
+      let g4Count = 4;
+      if (total < 6) g4Count = 2;
+      const isLibertadores = position <= g4Count;
+
+      // Sul-Americana
+      const isSulAmericana = !isLibertadores && !isRebaixamento && position <= (total - z4Count);
+
+      if (isLibertadores) {
+        tr.classList.add('zone-libertadores');
+      } else if (isSulAmericana) {
+        tr.classList.add('zone-sulamericana');
+      } else if (isRebaixamento) {
+        tr.classList.add('zone-rebaixamento');
+      }
+    }
+
     let rankBadgeClass = '';
     if (position === 1) rankBadgeClass = 'rank-1';
     else if (position === 2) rankBadgeClass = 'rank-2';
@@ -783,6 +809,31 @@ function renderRankingTable() {
     `;
     rankingList.appendChild(tr);
   });
+
+  // Render classification legend dynamically
+  const legendContainer = document.getElementById('ranking-legend-container');
+  if (legendContainer) {
+    if (participants.length >= 4) {
+      legendContainer.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.35rem;">
+          <span style="display: inline-block; width: 8px; height: 8px; background-color: #3b82f6; border-radius: 2px;"></span>
+          <span>Libertadores</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.35rem;">
+          <span style="display: inline-block; width: 8px; height: 8px; background-color: #f97316; border-radius: 2px;"></span>
+          <span>Sul-Americana</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.35rem;">
+          <span style="display: inline-block; width: 8px; height: 8px; background-color: #ef4444; border-radius: 2px;"></span>
+          <span>Rebaixamento</span>
+        </div>
+      `;
+      legendContainer.classList.remove('hidden');
+    } else {
+      legendContainer.innerHTML = '';
+      legendContainer.classList.add('hidden');
+    }
+  }
 
   // Attach event listeners to player audit buttons
   const playerAuditBtns = rankingList.querySelectorAll('.btn-audit-player');
