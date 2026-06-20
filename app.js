@@ -760,9 +760,10 @@ function renderRankingTable() {
     }
 
     const position = idx + 1;
+    const total = participants.length;
+    const isLastTwo = total >= 2 && position > (total - 2);
     
     // Add classification zone classes for fun: G4 Lib, G4 Sula (5-8), Z4 Rebaixamento
-    const total = participants.length;
     if (total >= 4) {
       // Rebaixamento (últimos 4)
       const isRebaixamento = position > (total - 4);
@@ -794,6 +795,7 @@ function renderRankingTable() {
       <td>
         <div class="cell-name-container">
           <span>${escapeHTML(p.name)}</span>
+          ${isLastTwo ? '<span class="duck-animated" title="Quack! Lanterna do bolão 🦆">🦆</span>' : ''}
           ${(currentUser && p.id === currentUser.id) ? '<span class="badge-self-indicator">Você</span>' : ''}
           <button class="btn-audit-player" data-player-id="${p.id}" data-player-name="${escapeHTML(p.name)}" title="Auditar palpites de ${escapeHTML(p.name)}">👁️</button>
         </div>

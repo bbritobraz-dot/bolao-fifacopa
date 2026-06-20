@@ -547,6 +547,26 @@ input[type="text"]:focus, input[type="password"]:focus, select:focus {
   gap: 0.5rem;
 }
 
+.duck-animated {
+  display: inline-block;
+  font-size: 1.1rem;
+  transform-origin: bottom center;
+  animation: waddle 1.2s ease-in-out infinite alternate;
+  cursor: help;
+}
+
+@keyframes waddle {
+  0% {
+    transform: rotate(-8deg) translateY(0);
+  }
+  50% {
+    transform: rotate(8deg) translateY(-2px);
+  }
+  100% {
+    transform: rotate(-8deg) translateY(0);
+  }
+}
+
 .points-total {
   font-size: 1.15rem;
   font-weight: 800;
