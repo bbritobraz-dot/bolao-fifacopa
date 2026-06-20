@@ -761,21 +761,17 @@ function renderRankingTable() {
 
     const position = idx + 1;
     
-    // Add classification zone classes for fun
+    // Add classification zone classes for fun: G4 Lib, G4 Sula (5-8), Z3 Rebaixamento
     const total = participants.length;
     if (total >= 4) {
-      // Rebaixamento (Z4)
-      let z4Count = 4;
-      if (total < 8) z4Count = 2;
-      const isRebaixamento = position > (total - z4Count);
+      // Rebaixamento (últimos 3)
+      const isRebaixamento = position > (total - 3);
 
-      // Libertadores (G4)
-      let g4Count = 4;
-      if (total < 6) g4Count = 2;
-      const isLibertadores = position <= g4Count;
+      // Libertadores (G4 - top 4)
+      const isLibertadores = !isRebaixamento && position <= 4;
 
-      // Sul-Americana
-      const isSulAmericana = !isLibertadores && !isRebaixamento && position <= (total - z4Count);
+      // Sul-Americana (posições 5 a 8)
+      const isSulAmericana = !isRebaixamento && !isLibertadores && position >= 5 && position <= 8;
 
       if (isLibertadores) {
         tr.classList.add('zone-libertadores');
