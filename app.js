@@ -761,11 +761,11 @@ function renderRankingTable() {
 
     const position = idx + 1;
     
-    // Add classification zone classes for fun: G4 Lib, G4 Sula (5-8), Z3 Rebaixamento
+    // Add classification zone classes for fun: G4 Lib, G4 Sula (5-8), Z4 Rebaixamento
     const total = participants.length;
     if (total >= 4) {
-      // Rebaixamento (últimos 3)
-      const isRebaixamento = position > (total - 3);
+      // Rebaixamento (últimos 4)
+      const isRebaixamento = position > (total - 4);
 
       // Libertadores (G4 - top 4)
       const isLibertadores = !isRebaixamento && position <= 4;
