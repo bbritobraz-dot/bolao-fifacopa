@@ -644,7 +644,8 @@ async function fetchGuesses() {
       if (match && match.status === 'finished' && match.home_score !== null && match.away_score !== null) {
         if (g.home_score === match.home_score && g.away_score === match.away_score) {
           pts = 10;
-        } else if ((g.home_score - g.away_score) === (match.home_score - match.away_score) &&
+        } else if (match.home_score !== match.away_score &&
+                   (g.home_score - g.away_score) === (match.home_score - match.away_score) &&
                    Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
           pts = 5;
         } else if (Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
@@ -689,7 +690,8 @@ async function fetchRanking() {
           if (g.home_score === match.home_score && g.away_score === match.away_score) {
             pts = 10;
             exacts++;
-          } else if ((g.home_score - g.away_score) === (match.home_score - match.away_score) &&
+          } else if (match.home_score !== match.away_score &&
+                     (g.home_score - g.away_score) === (match.home_score - match.away_score) &&
                      Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
             pts = 5;
             diffs++;
@@ -1847,7 +1849,8 @@ async function openAuditModal(matchId) {
       if (match.status === 'finished' && match.home_score !== null && match.away_score !== null) {
         if (g.home_score === match.home_score && g.away_score === match.away_score) {
           pts = 10;
-        } else if ((g.home_score - g.away_score) === (match.home_score - match.away_score) &&
+        } else if (match.home_score !== match.away_score &&
+                   (g.home_score - g.away_score) === (match.home_score - match.away_score) &&
                    Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
           pts = 5;
         } else if (Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
@@ -1945,7 +1948,8 @@ async function openPlayerAuditModal(playerId, playerName) {
       if (match && match.status === 'finished' && match.home_score !== null && match.away_score !== null) {
         if (g.home_score === match.home_score && g.away_score === match.away_score) {
           pts = 10;
-        } else if ((g.home_score - g.away_score) === (match.home_score - match.away_score) &&
+        } else if (match.home_score !== match.away_score &&
+                   (g.home_score - g.away_score) === (match.home_score - match.away_score) &&
                    Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
           pts = 5;
         } else if (Math.sign(g.home_score - g.away_score) === Math.sign(match.home_score - match.away_score)) {
@@ -1956,15 +1960,11 @@ async function openPlayerAuditModal(playerId, playerName) {
       guessMap[g.match_id] = g;
     });
 
-    // Filter matches to match the active bolão rules: only group stage starting from today
-    const activeMatches = matches.filter(match => {
-      if (match.stage !== 'group') return false;
-      const matchLocalDateStr = new Date(match.match_date).toLocaleDateString('en-CA');
-      return matchLocalDateStr >= clientTodayStr;
-    });
+    // Filter matches to match the active bolão rules: only group stage (include past matches for auditing)
+    const activeMatches = matches.filter(match => match.stage === 'group');
 
     if (activeMatches.length === 0) {
-      listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1.5rem 0;">Nenhum jogo de fase de grupos iniciando a partir de hoje.</p>';
+      listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1.5rem 0;">Nenhum jogo da fase de grupos encontrado.</p>';
       return;
     }
 
