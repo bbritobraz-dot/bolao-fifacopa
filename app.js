@@ -857,9 +857,8 @@ function renderGames() {
     // Only group stage games
     if (match.stage !== 'group') return false;
 
-    // Only starting from today's games (local date)
+    // Parse local date string for match
     const matchLocalDateStr = new Date(match.match_date).toLocaleDateString('en-CA');
-    if (matchLocalDateStr < clientTodayStr) return false;
 
     // 1. Group Filter
     if (activeGroupFilter !== 'all') {
