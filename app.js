@@ -854,16 +854,19 @@ function renderGames() {
   const clientTodayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
 
   const filteredMatches = matches.filter(match => {
-    // Only group stage games
-    if (match.stage !== 'group') return false;
+    // 1. Group / Phase Filter
+    if (activeGroupFilter !== 'all') {
+      if (activeGroupFilter === 'playoff') {
+        if (match.stage !== 'playoff') return false;
+      } else if (activeGroupFilter === 'Finais') {
+        if (match.group_name !== 'Final' && match.group_name !== 'Disputa de 3º Lugar') return false;
+      } else {
+        if (match.group_name !== activeGroupFilter) return false;
+      }
+    }
 
     // Parse local date string for match
     const matchLocalDateStr = new Date(match.match_date).toLocaleDateString('en-CA');
-
-    // 1. Group Filter
-    if (activeGroupFilter !== 'all') {
-      if (match.group_name !== activeGroupFilter) return false;
-    }
 
     // 2. Calendar Filter (Today, Upcoming, Finished)
     const isFinished = match.status === 'finished';
@@ -1959,11 +1962,11 @@ async function openPlayerAuditModal(playerId, playerName) {
       guessMap[g.match_id] = g;
     });
 
-    // Filter matches to match the active bolão rules: only group stage (include past matches for auditing)
-    const activeMatches = matches.filter(match => match.stage === 'group');
+    // Filter matches to match the active bolão rules: all matches (include past matches for auditing)
+    const activeMatches = matches;
 
     if (activeMatches.length === 0) {
-      listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1.5rem 0;">Nenhum jogo da fase de grupos encontrado.</p>';
+      listContainer.innerHTML = '<p class="text-secondary text-center" style="margin: 1.5rem 0;">Nenhum jogo encontrado.</p>';
       return;
     }
 
