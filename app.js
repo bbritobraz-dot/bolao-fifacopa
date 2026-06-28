@@ -1080,7 +1080,7 @@ function renderBracket() {
   // Reset containers
   Object.keys(rounds).forEach(k => { rounds[k].innerHTML = ''; });
 
-  const playoffMatches = matches.filter(m => m.stage === 'playoff');
+  const playoffMatches = matches.filter(m => m.stage === 'playoff').sort((a, b) => a.id - b.id);
 
   playoffMatches.forEach(match => {
     const node = match.bracket_node;
